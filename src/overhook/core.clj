@@ -9,7 +9,7 @@
                                       :body text})
 
 (defn github-webhook-handler [req]
-  (if (-> req :headers :X-Hub-Signature)
+  (if-let [github-signature (-> req :headers :X-Hub-Signature)]
     (simple-response 405 "nope")
     (simple-response 200 "OK")))
 
