@@ -25,7 +25,6 @@
     (reset! server nil)))
 
 (defn -main [& args]
-  (println "foo")
   (reset! server (run-server #'all-routes {:ip "0.0.0.0"
                                            :port 8080
                                            :thread 2})))
