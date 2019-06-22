@@ -10,7 +10,7 @@
 
 (defn github-webhook-handler [req]
   (if-let [github-signature (-> req :headers :X-Hub-Signature)]
-    (simple-response 405 "nope")
+    (simple-response 403 "nope")
     (simple-response 200 "OK")))
 
 (defroutes all-routes
