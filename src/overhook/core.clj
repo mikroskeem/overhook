@@ -1,12 +1,10 @@
 (ns overhook.core
-  (:use [compojure.route :only [not-found]]
-        [compojure.core :only [defroutes GET POST context]]
+  (:use [reitit.ring :as ring]
         org.httpkit.server)
   (:import (javax.crypto Mac)
-           (javax.crypto SecretKeySpec)
+           (javax.crypto.spec SecretKeySpec)
            (java.security MessageDigest)
-           (java.nio.charset StandardCharsets)
-  (:gen-class))
+           (java.nio.charset StandardCharsets)))
 
 (def github-secret-key "1234567890")
 
@@ -30,17 +28,18 @@
     (MessageDigest/isEqual (.getBytes digest StandardCharsets/UTF_8) (.getBytes expected_signature StandardCharsets/UTF_8))))
 
 (defn github-webhook-handler [req]
-  (if-let [github-signature (-> req :headers :X-Hub-Signature)
-           body (-> req :body)]
+  (if-let [github-signature (-> req :headers :X-Hub-Signature)]
     (simple-response 403 "nope")
-    (if (verify-github-signature? github-secret-key body github-signature)
+    (if (verify-github-signature? github-secret-key (req :body) github-signature)
       (simple-response 200 "OK")
-      (simple-response 403 "nope"))
+      (simple-response 403 "nope"))))
 
-(defroutes all-routes
-  (GET "/" [] (simple-response 200 "nothing here"))
-  (POST "/webhook" [] github-webhook-handler)
-  (not-found {:status 405}))
+(def app
+  (ring/ring-handler
+    (ring/router
+      ["/" {:get (fn [req]
+                   simple-response 200 "nothing-here")}]
+      ["/webhook" {:post github-webhook-handler}])))
 
 (defonce server (atom nil))
 (defn stop-server []
@@ -49,6 +48,6 @@
     (reset! server nil)))
 
 (defn -main [& args]
-  (reset! server (run-server #'all-routes {:ip "0.0.0.0"
+  (reset! server (run-server #'app {:ip "0.0.0.0"
                                            :port 8080
                                            :thread 2})))
