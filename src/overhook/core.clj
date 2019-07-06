@@ -37,9 +37,9 @@
 (def app
   (ring/ring-handler
     (ring/router
-      ["/" {:get (fn [req]
+      [["/" {:get (fn [req]
                    (simple-response 200 "nothing-here"))}]
-      ["/webhook" {:post github-webhook-handler}])))
+       ["/webhook" {:post github-webhook-handler}]])))
 
 (defonce server (atom nil))
 (defn stop-server []
