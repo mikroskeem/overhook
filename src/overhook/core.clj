@@ -11,6 +11,8 @@
            (java.nio.charset StandardCharsets))
   (:gen-class))
 
+(set! *warn-on-reflection* true)
+
 (def conf (load-config))
 
 (defn hex-encode [b]
@@ -21,14 +23,14 @@
                                       :headers {"Content-Type" "text/plain"}
                                       :body text})
 
-(defn hmac-sha1-hexdigest [secret, contents]
+(defn hmac-sha1-hexdigest [^String secret, ^org.httpkit.BytesInputStream contents]
   (let [key-spec (SecretKeySpec. (.getBytes secret) "HmacSHA1")
         mac (doto (Mac/getInstance "HmacSHA1") (.init key-spec))]
     (hex-encode
       (.doFinal mac
-        (.bytes contents))))) ; org.httpkit.BytesInputStream specific
+        (.bytes contents)))))
 
-(defn verify-github-signature? [secret, contents, expected-signature]
+(defn verify-github-signature? [^String secret, contents, ^String expected-signature]
   (let [digest (str "sha1=" (hmac-sha1-hexdigest secret contents))]
     (MessageDigest/isEqual
       (.getBytes digest StandardCharsets/UTF_8)
