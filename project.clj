@@ -7,7 +7,7 @@
             :year 2019}
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [http-kit "2.3.0"]
-                 [metosin/reitit "0.3.9"]]
+                 [metosin/reitit-ring "0.3.9"]]
   :main ^:skip-aot overhook.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
