@@ -29,10 +29,10 @@
 
 (defn github-webhook-handler [req]
   (if-let [github-signature (-> req :headers :X-Hub-Signature)]
-    (simple-response 403 "nope")
     (if (verify-github-signature? github-secret-key (req :body) github-signature)
       (simple-response 200 "OK")
-      (simple-response 403 "nope"))))
+      (simple-response 403 "nope"))
+    (simple-response 403 "nope")))
 
 (def app
   (ring/ring-handler
