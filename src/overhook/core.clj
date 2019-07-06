@@ -9,7 +9,8 @@
   (:import (javax.crypto Mac)
            (javax.crypto.spec SecretKeySpec)
            (java.security MessageDigest)
-           (java.nio.charset StandardCharsets)))
+           (java.nio.charset StandardCharsets))
+  (:gen-class))
 
 (def conf (load-config))
 
