@@ -1,6 +1,8 @@
 (ns overhook.core
   (:use [clojure.tools.logging :as log]
         [reitit.ring :as ring]
+        [org.httpkit.client :as http]
+        [clojure.string :as string]
         org.httpkit.server)
   (:import (javax.crypto Mac)
            (javax.crypto.spec SecretKeySpec)
@@ -8,6 +10,7 @@
            (java.nio.charset StandardCharsets)))
 
 (def github-secret-key "1234567890")
+(def discord-webhook-url "")
 
 (defn hex-encode [b]
   (apply str
@@ -34,8 +37,18 @@
   (if-let [github-signature ((req :headers) "x-hub-signature")]
     (if (verify-github-signature? github-secret-key (req :body) github-signature)
       (do
-        ; TODO: Pass to Discord
-        (log/info "Got valid GitHub request!")
+        (http/post discord-webhook-url
+                   {:user-agent ((req :headers) :user-agent)
+                    :body (req :body)
+                    :headers (into {}
+                                   (filter
+                                     (fn [[k v]] (or
+                                                   (= k "content-type")
+                                                   (string/starts-with? k "x-github")))
+                                     (req :headers)))}
+                   (fn [{:keys [status headers body error]}]
+                     (when-not (= status 204)
+                       (log/warn "Failed to forward webhook call to GitHub, status:" status "body:" body "error:" error))))
         (simple-response 200 "OK"))
       (do
         (log/info "Remote" (req :remote-addr) "sent invalid body (signature does not match)")
