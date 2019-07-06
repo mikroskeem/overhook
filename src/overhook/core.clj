@@ -78,7 +78,7 @@
   (when (empty? (conf :github-secret-key))
     (log/error "GitHub secret key is not set!")
     (System/exit 1))
-  (reset! server (run-server #'app {:ip "0.0.0.0"
-                                           :port 8080
-                                           :thread 2}))
-  (log/info "Overhook is up"))
+  (reset! server (run-server #'app {:ip (conf :http-host)
+                                    :port (conf :http-port)
+                                    :thread 2}))
+  (log/info "Overhook is up at" (conf :http-host) (conf :http-port)))

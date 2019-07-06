@@ -1,2 +1,4 @@
 {:discord-webhook-url ""
- :github-secret-key ""}
+ :github-secret-key ""
+ :http-host "0.0.0.0"
+ :http-port 8080}
