@@ -1,10 +1,11 @@
 (ns overhook.core
-  (:use [clojure.tools.logging :as log]
-        [reitit.ring :as ring]
-        [org.httpkit.client :as http]
-        [clojure.string :as string]
-        [cprop.core :refer [load-config]]
-        org.httpkit.server)
+  (:require
+    [clojure.tools.logging :as log]
+    [reitit.ring :as ring]
+    [org.httpkit.client :as http]
+    [clojure.string :as string]
+    [cprop.core :refer [load-config]]
+    [org.httpkit.server :refer [run-server]])
   (:import (javax.crypto Mac)
            (javax.crypto.spec SecretKeySpec)
            (java.security MessageDigest)
@@ -79,4 +80,5 @@
     (System/exit 1))
   (reset! server (run-server #'app {:ip "0.0.0.0"
                                            :port 8080
-                                           :thread 2})))
+                                           :thread 2}))
+  (log/info "Overhook is up"))
