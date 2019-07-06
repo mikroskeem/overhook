@@ -1,5 +1,6 @@
 (ns overhook.core
-  (:use [reitit.ring :as ring]
+  (:use [clojure.tools.logging :as log]
+        [reitit.ring :as ring]
         org.httpkit.server)
   (:import (javax.crypto Mac)
            (javax.crypto.spec SecretKeySpec)
@@ -21,18 +22,26 @@
         mac (doto (Mac/getInstance "HmacSHA1") (.init key-spec))]
     (hexencode
       (.doFinal mac
-        (.getBytes contents)))))
+        (.bytes contents))))) ; org.httpkit.BytesInputStream specific
 
 (defn verify-github-signature? [secret, contents, expected_signature]
-  (let [digest (str "sha1=" (hmac-sha1-hexdigest secret, contents))]
-    (MessageDigest/isEqual (.getBytes digest StandardCharsets/UTF_8) (.getBytes expected_signature StandardCharsets/UTF_8))))
+  (let [digest (str "sha1=" (hmac-sha1-hexdigest secret contents))]
+    (MessageDigest/isEqual
+      (.getBytes digest StandardCharsets/UTF_8)
+      (.getBytes expected_signature StandardCharsets/UTF_8))))
 
 (defn github-webhook-handler [req]
-  (if-let [github-signature (-> req :headers :X-Hub-Signature)]
+  (if-let [github-signature ((req :headers) "x-hub-signature")]
     (if (verify-github-signature? github-secret-key (req :body) github-signature)
-      (simple-response 200 "OK")
-      (simple-response 403 "nope"))
-    (simple-response 403 "nope")))
+      (do
+        ; TODO: Pass to Discord
+        (simple-response 200 "OK"))
+      (do
+        (log/info "Remote" (req :remote-addr) "sent invalid body (signature does not match)")
+        (simple-response 403 "nope")))
+    (do
+      (log/info "Remote" (req :remote-addr) "did not pass X-Hub-Signature header")
+      (simple-response 403 "nope"))))
 
 (def app
   (ring/ring-handler
