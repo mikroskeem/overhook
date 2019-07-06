@@ -1,6 +1,5 @@
 (ns overhook.core
   (:require
-    [clojure.tools.logging :as log]
     [reitit.ring :as ring]
     [org.httpkit.client :as http]
     [clojure.string :as string]
@@ -50,13 +49,13 @@
                                      (req :headers)))}
                    (fn [{:keys [status headers body error]}]
                      (when-not (= status 204)
-                       (log/warn "Failed to forward webhook call to GitHub, status:" status "body:" body "error:" error))))
+                       (println "Failed to forward webhook call to GitHub, status:" status "body:" body "error:" error))))
         (simple-response 200 "OK"))
       (do
-        (log/info "Remote" (req :remote-addr) "sent invalid body (signature does not match)")
+        (println "Remote" (req :remote-addr) "sent invalid body (signature does not match)")
         (simple-response 403 "nope")))
     (do
-      (log/info "Remote" (req :remote-addr) "did not pass X-Hub-Signature header")
+      (println "Remote" (req :remote-addr) "did not pass X-Hub-Signature header")
       (simple-response 403 "nope"))))
 
 (def app
@@ -74,12 +73,12 @@
 
 (defn -main [& args]
   (when (empty? (conf :discord-webhook-url))
-    (log/error "Discord webhook URL is not set!")
+    (println "Discord webhook URL is not set!")
     (System/exit 1))
   (when (empty? (conf :github-secret-key))
-    (log/error "GitHub secret key is not set!")
+    (println "GitHub secret key is not set!")
     (System/exit 1))
   (reset! server (run-server #'app {:ip (conf :http-host)
                                     :port (conf :http-port)
                                     :thread 2}))
-  (log/info "Overhook is up at" (conf :http-host) (conf :http-port)))
+  (println "Overhook is up at" (conf :http-host) (conf :http-port)))
