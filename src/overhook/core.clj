@@ -38,7 +38,7 @@
   (ring/ring-handler
     (ring/router
       ["/" {:get (fn [req]
-                   simple-response 200 "nothing-here")}]
+                   (simple-response 200 "nothing-here"))}]
       ["/webhook" {:post github-webhook-handler}])))
 
 (defonce server (atom nil))
