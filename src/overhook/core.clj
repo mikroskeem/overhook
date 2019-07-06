@@ -9,7 +9,7 @@
 
 (def github-secret-key "1234567890")
 
-(defn hexencode [b]
+(defn hex-encode [b]
   (apply str
     (map #(format "%02x" (int (bit-and % 0xFF))) b)))
 
@@ -20,7 +20,7 @@
 (defn hmac-sha1-hexdigest [secret, contents]
   (let [key-spec (SecretKeySpec. (.getBytes secret) "HmacSHA1")
         mac (doto (Mac/getInstance "HmacSHA1") (.init key-spec))]
-    (hexencode
+    (hex-encode
       (.doFinal mac
         (.bytes contents))))) ; org.httpkit.BytesInputStream specific
 
