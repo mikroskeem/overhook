@@ -3,14 +3,14 @@
         [reitit.ring :as ring]
         [org.httpkit.client :as http]
         [clojure.string :as string]
+        [cprop.core :refer [load-config]]
         org.httpkit.server)
   (:import (javax.crypto Mac)
            (javax.crypto.spec SecretKeySpec)
            (java.security MessageDigest)
            (java.nio.charset StandardCharsets)))
 
-(def github-secret-key "1234567890")
-(def discord-webhook-url "")
+(def conf (load-config))
 
 (defn hex-encode [b]
   (apply str
@@ -35,9 +35,9 @@
 
 (defn github-webhook-handler [req]
   (if-let [github-signature ((req :headers) "x-hub-signature")]
-    (if (verify-github-signature? github-secret-key (req :body) github-signature)
+    (if (verify-github-signature? (conf :github-secret-key) (req :body) github-signature)
       (do
-        (http/post discord-webhook-url
+        (http/post (conf :discord-webhook-url)
                    {:user-agent ((req :headers) :user-agent)
                     :body (req :body)
                     :headers (into {}
@@ -71,6 +71,12 @@
     (reset! server nil)))
 
 (defn -main [& args]
+  (when (empty? (conf :discord-webhook-url))
+    (log/error "Discord webhook URL is not set!")
+    (System/exit 1))
+  (when (empty? (conf :github-secret-key))
+    (log/error "GitHub secret key is not set!")
+    (System/exit 1))
   (reset! server (run-server #'app {:ip "0.0.0.0"
                                            :port 8080
                                            :thread 2})))
