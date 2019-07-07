@@ -11,10 +11,11 @@
                         "--initialize-at-build-time"
                         "--enable-url-protocols=http,https"
                         "--report-unsupported-elements-at-runtime"]}
+  :repositories [["mikroskeem-repo" "https://repo.wut.ee/repository/mikroskeem-repo"]]
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [org.clojure/data.json "0.2.6"]
                  [cprop "0.1.14"]
-                 [http-kit "2.3.0"]
+                 [http-kit "2.3.0-graalvm-SNAPSHOT"]
                  [metosin/reitit-ring "0.3.9"]]
   :main overhook.core
   :target-path "target/%s"
